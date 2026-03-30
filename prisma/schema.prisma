@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String?   @unique
+  password      String?
+  name          String
+  emoji         String    @default("😊")
+  area          String    @default("역삼동")
+  gender        String?   // 남, 여
+  ageGroup      String?   // 10대, 20대, 30대, 40대, 50대+
+  mannerScore   Float     @default(36.5)
+  kakaoId       String?   @unique
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  posts         Post[]         @relation("HostedPosts")
+  participants  Participant[]
+  likes         Like[]
+}
+
+model Post {
+  id            String    @id @default(cuid())
+  title         String
+  category      String
+  restaurant    String
+  location      String
+  time          String
+  description   String
+  conditions    String    @default("없음")
+  maxPeople     Int       @default(4)
+  currentPeople Int       @default(1)
+  showGender    Boolean   @default(true)
+  showAge       Boolean   @default(true)
+  status        String    @default("open") // open, full, closed
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  hostId        String
+  host          User      @relation("HostedPosts", fields: [hostId], references: [id])
+
+  participants  Participant[]
+  likes         Like[]
+}
+
+model Participant {
+  id        String   @id @default(cuid())
+  joinedAt  DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+}
