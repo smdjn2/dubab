@@ -52,13 +52,19 @@ export default function RegisterPage() {
       }
 
       // 자동 로그인
-      await signIn('credentials', {
+      const result = await signIn('credentials', {
         redirect: false,
         email: form.email,
         password: form.password,
       });
 
-      router.push('/');
+      if (result?.error) {
+        setError('회원가입은 완료되었으나 자동 로그인에 실패했습니다. 로그인 페이지에서 로그인해주세요.');
+        setTimeout(() => router.push('/login'), 2000);
+        return;
+      }
+
+      window.location.href = '/';
     } catch (err) {
       setError('서버 오류가 발생했습니다.');
     } finally {

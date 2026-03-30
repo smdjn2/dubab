@@ -41,6 +41,25 @@ export async function POST(request, { params }) {
       }),
     ]);
 
+    // 채팅방 자동 생성 (없으면)
+    await prisma.chatRoom.upsert({
+      where: { postId: post.id },
+      update: {},
+      create: { postId: post.id },
+    });
+
+    // 호스트에게 알림
+    if (post.hostId !== session.user.id) {
+      await prisma.notification.create({
+        data: {
+          type: 'join',
+          message: `${session.user.name}님이 "${post.title}" 모집에 참여했습니다.`,
+          userId: post.hostId,
+          postId: post.id,
+        },
+      });
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('참여 에러:', error);

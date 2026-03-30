@@ -24,6 +24,15 @@ model User {
   posts         Post[]         @relation("HostedPosts")
   participants  Participant[]
   likes         Like[]
+  comments      Comment[]
+  chatMessages  ChatMessage[]
+  notifications Notification[]
+  reportsMade      Report[]       @relation("ReportsMade")
+  reportsReceived  Report[]       @relation("ReportsReceived")
+  blocksMade       Block[]        @relation("BlocksMade")
+  blocksReceived   Block[]        @relation("BlocksReceived")
+  reviewsMade      MannerReview[] @relation("ReviewsMade")
+  reviewsReceived  MannerReview[] @relation("ReviewsReceived")
 }
 
 model Post {
@@ -48,6 +57,11 @@ model Post {
 
   participants  Participant[]
   likes         Like[]
+  comments      Comment[]
+  chatRoom      ChatRoom?
+  notifications Notification[]
+  reports       Report[]
+  mannerReviews MannerReview[]
 }
 
 model Participant {
@@ -74,4 +88,97 @@ model Like {
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model ChatRoom {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  postId    String   @unique
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  messages  ChatMessage[]
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+
+  roomId    String
+  room      ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  senderId  String
+  sender    User     @relation(fields: [senderId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String   // join, comment, chat, manner
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  postId    String?
+  post      Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id        String   @id @default(cuid())
+  reason    String
+  createdAt DateTime @default(now())
+
+  reporterId   String
+  reporter     User   @relation("ReportsMade", fields: [reporterId], references: [id])
+
+  targetUserId String
+  targetUser   User   @relation("ReportsReceived", fields: [targetUserId], references: [id])
+
+  postId       String?
+  post         Post?  @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  blockerId String
+  blocker   User   @relation("BlocksMade", fields: [blockerId], references: [id])
+
+  blockedId String
+  blocked   User   @relation("BlocksReceived", fields: [blockedId], references: [id])
+
+  @@unique([blockerId, blockedId])
+}
+
+model MannerReview {
+  id        String   @id @default(cuid())
+  score     Int      // 1~5
+  createdAt DateTime @default(now())
+
+  reviewerId String
+  reviewer   User   @relation("ReviewsMade", fields: [reviewerId], references: [id])
+
+  targetId   String
+  target     User   @relation("ReviewsReceived", fields: [targetId], references: [id])
+
+  postId     String
+  post       Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewerId, targetId, postId])
 }

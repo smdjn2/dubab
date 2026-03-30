@@ -39,7 +39,7 @@ export default function BottomNav() {
         return (
           <button
             key={item.path}
-            onClick={() => router.push(item.path === '/search' ? '/' : item.path === '/alerts' ? '/' : item.path)}
+            onClick={() => router.push(item.path)}
             className={`flex flex-col items-center gap-1 px-3 py-1 text-[11px] border-none bg-transparent cursor-pointer transition-colors ${isActive ? 'text-sage-500' : 'text-gray-400'}`}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

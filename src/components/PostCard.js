@@ -11,8 +11,9 @@ export default function PostCard({ post }) {
   if (post.showGender && post.host?.gender) hostInfo.push(post.host.gender);
   if (post.showAge && post.host?.ageGroup) hostInfo.push(post.host.ageGroup);
 
-  const isFull = post.currentPeople >= post.maxPeople;
-  const isSoon = !isFull && post.time?.includes('오늘');
+  const isClosed = post.status === 'closed';
+  const isFull = post.currentPeople >= post.maxPeople || post.status === 'full';
+  const isSoon = !isFull && !isClosed && post.time?.includes('오늘');
 
   return (
     <div
@@ -60,11 +61,12 @@ export default function PostCard({ post }) {
           {post.currentPeople}/{post.maxPeople}명
         </div>
         <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+          isClosed ? 'text-gray-500 bg-gray-100' :
           isFull ? 'text-red-500 bg-red-50' :
           isSoon ? 'text-amber-500 bg-amber-50' :
           'text-green-500 bg-green-50'
         }`}>
-          {isFull ? '마감' : isSoon ? '곧 마감' : '모집중'}
+          {isClosed ? '종료' : isFull ? '마감' : isSoon ? '곧 마감' : '모집중'}
         </span>
       </div>
     </div>

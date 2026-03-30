@@ -13,10 +13,27 @@ export default function HomePage() {
   const [activeFilter, setActiveFilter] = useState('전체');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [blockedIds, setBlockedIds] = useState([]);
+
+  useEffect(() => {
+    if (session) fetchBlockList();
+  }, [session]);
 
   useEffect(() => {
     fetchPosts();
-  }, [activeFilter, searchQuery]);
+  }, [activeFilter, searchQuery, blockedIds]);
+
+  async function fetchBlockList() {
+    try {
+      const res = await fetch('/api/block');
+      if (res.ok) {
+        const blocks = await res.json();
+        setBlockedIds(blocks.map((b) => b.blocked.id));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   async function fetchPosts() {
     try {
@@ -26,7 +43,13 @@ export default function HomePage() {
 
       const res = await fetch(`/api/posts?${params}`);
       const data = await res.json();
-      setPosts(data);
+
+      // 차단한 사용자의 게시글 필터링
+      const filtered = blockedIds.length > 0
+        ? data.filter((post) => !blockedIds.includes(post.host?.id))
+        : data;
+
+      setPosts(filtered);
     } catch (err) {
       console.error('Failed to fetch posts:', err);
     } finally {
@@ -44,27 +67,11 @@ export default function HomePage() {
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" />
           </svg>
           {session?.user?.area || '강남구 역삼동'}
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#666" strokeWidth="2">
-            <path d="M3 4.5l3 3 3-3" />
-          </svg>
         </div>
       </div>
 
-      {/* Search */}
-      <div className="mx-4 mt-3 mb-1 relative">
-        <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
-        <input
-          className="w-full py-3 pl-10 pr-4 border-none rounded-xl text-sm bg-sage-100/60 outline-none font-[inherit] placeholder:text-gray-400"
-          placeholder="음식, 장소, 키워드로 검색"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-      </div>
-
       {/* Filters */}
-      <div className="flex gap-2 px-4 py-2 overflow-x-auto">
+      <div className="flex gap-2 px-4 py-3 overflow-x-auto">
         {CATEGORIES.map((cat) => (
           <button
             key={cat}

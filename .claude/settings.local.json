@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma:*)",
+      "Bash(npx next:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(command -v npm)",
+      "Bash(command -v next)",
+      "Bash(ls C:/Users/parkc/Documents/dubab/node_modules/.bin/next*)"
+    ]
+  }
+}

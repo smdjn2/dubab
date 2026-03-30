@@ -67,6 +67,46 @@ export async function GET(request, { params }) {
   }
 }
 
+// PATCH /api/posts/:id - 모집글 수정
+export async function PATCH(request, { params }) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: '로그인이 필요합니다.' }, { status: 401 });
+    }
+
+    const post = await prisma.post.findUnique({ where: { id: params.id } });
+    if (!post || post.hostId !== session.user.id) {
+      return NextResponse.json({ error: '수정 권한이 없습니다.' }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const { title, category, restaurant, location, time, description, conditions, maxPeople, showGender, showAge, status } = body;
+
+    const updated = await prisma.post.update({
+      where: { id: params.id },
+      data: {
+        ...(title && { title }),
+        ...(category && { category }),
+        ...(restaurant && { restaurant }),
+        ...(location !== undefined && { location }),
+        ...(time && { time }),
+        ...(description !== undefined && { description }),
+        ...(conditions !== undefined && { conditions }),
+        ...(maxPeople && { maxPeople }),
+        ...(showGender !== undefined && { showGender }),
+        ...(showAge !== undefined && { showAge }),
+        ...(status && { status }),
+      },
+    });
+
+    return NextResponse.json(updated);
+  } catch (error) {
+    console.error('게시글 수정 에러:', error);
+    return NextResponse.json({ error: '서버 오류' }, { status: 500 });
+  }
+}
+
 // DELETE /api/posts/:id - 모집글 삭제
 export async function DELETE(request, { params }) {
   try {
